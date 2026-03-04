@@ -1,0 +1,136 @@
+@using System.Security.Claims
+@model IEnumerable<Asset>
+
+@{
+    ViewData["Title"] = "Assets";
+    var currentUserEmail = User.FindFirstValue(ClaimTypes.Email);
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Asset Inventory</h2>
+        <div>
+            @if (User.IsInRole("Issuer"))
+            {
+                <a class="btn btn-success me-2" asp-controller="Assets" asp-action="RequestAsset">
+                    <i class="fas fa-layer-group"></i> Request Multiple Assets
+                </a>
+                <a class="btn btn-warning me-2" asp-controller="Assets" asp-action="ReturnMultipleAssets">
+                    <i class="fas fa-undo"></i> Return Multiple Assets
+                </a>
+            }
+            @if (User.IsInRole("Admin"))
+            {
+                <a class="btn btn-primary" asp-controller="Assets" asp-action="Create">
+                    <i class="fas fa-plus"></i> Create New Asset
+                </a>
+            }
+        </div>
+    </div>
+
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Asset Tag</th>
+                <th>Category</th>
+                <th>Brand / Model</th>
+                <th>Status</th>
+                <th>Assigned To</th>
+                <th>Location</th>
+                <th>QR Code</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.AssetTag</td>
+                    <td>@item.Category</td>
+                    <td>@item.Brand @item.Model</td>
+                    <td>
+                        <span class="badge bg-@GetStatusColor(item.Status)">@item.Status</span>
+                    </td>
+                    <td>@(item.AssignedTo ?? "Available")</td>
+                    <td>@item.Location</td>
+
+                    <!-- QR CODE COLUMN - Visible to ALL authenticated users -->
+                    <td>
+                        <a class="btn btn-sm btn-outline-primary"
+                           href="@Url.Action("GenerateQRCode", "Assets", new { id = item.Id })"
+                           target="_blank"
+                           title="View QR Code">
+                            <i class="fas fa-qrcode"></i> View QR
+                        </a>
+                        @if (User.IsInRole("Admin") || User.IsInRole("Issuer"))
+                        {
+                            <a class="btn btn-sm btn-outline-success"
+                               asp-controller="Assets"
+                               asp-action="DownloadQRCode"
+                               asp-route-id="@item.Id"
+                               title="Download QR Code">
+                                <i class="fas fa-download"></i> Print QR
+                            </a>
+                        }
+                    </td>
+
+                    <td>
+                        <!-- ADMIN ACTIONS -->
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a class="btn btn-sm btn-info" asp-controller="Assets" asp-action="Edit" asp-route-id="@item.Id">
+                                Edit
+                            </a>
+                            <a class="btn btn-sm btn-danger" asp-controller="Assets" asp-action="Delete" asp-route-id="@item.Id">
+                                Delete
+                            </a>
+                        }
+
+                        <!-- ISSUER ACTIONS -->
+                        @if (User.IsInRole("Issuer"))
+                        {
+                            @* Request button - only show for Ready assets *@
+                            @if (item.Status == AssetStatus.Ready)
+                            {
+                                <a class="btn btn-sm btn-success"
+                                   asp-controller="Assets"
+                                   asp-action="RequestAsset"
+                                   asp-route-id="@item.Id">
+                                    <i class="fas fa-hand-paper"></i> Request
+                                </a>
+                            }
+
+                            @* Return button - show for any assigned asset (Issuers can return any assigned asset) *@
+                            @if (item.Status == AssetStatus.Assigned)
+                            {
+                                <a class="btn btn-sm btn-warning" asp-controller="Assets" asp-action="ReturnAsset" asp-route-id="@item.Id">
+                                    Return Asset
+                                </a>
+                            }
+                        }
+
+                        <!-- VIEW DETAILS (ALL ROLES) -->
+                        <a class="btn btn-sm btn-secondary" asp-action="Details" asp-route-id="@item.Id">
+                            Details
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@functions {
+    private string GetStatusColor(AssetStatus status)
+    {
+        return status switch
+        {
+            AssetStatus.Ready => "success",
+            AssetStatus.Pending => "warning",
+            AssetStatus.Assigned => "info",
+            AssetStatus.Maintenance => "secondary",
+            AssetStatus.Retired => "danger",
+            _ => "light"
+        };
+    }
+}

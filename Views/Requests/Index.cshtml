@@ -1,0 +1,145 @@
+@model IEnumerable<AssetRequest>
+@{
+    ViewData["Title"] = "Pending Requests";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Pending Asset Requests</h2>
+            <p class="text-muted">
+                @if (User.IsInRole("Admin"))
+                {
+                    <text>View-only mode - Admins manage assets directly via Edit</text>
+                }
+                else if (User.IsInRole("Issuer"))
+                {
+                    <text>View-only mode for auditing purposes</text>
+                }
+                else
+                {
+                    <text>Requests waiting for approval</text>
+                }
+            </p>
+        </div>
+    </div>
+
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Request ID</th>
+                <th>Asset(s)</th>
+                <th>Requested By</th>
+                <th>Request Type</th>
+                <th>Request Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Any())
+            {
+                @foreach (var request in Model)
+                {
+                    // Determine asset display
+                    var assetDisplay = "";
+                    var assetCount = 0;
+
+                    if (request.RequestedAssets != null && request.RequestedAssets.Any())
+                    {
+                        assetCount = request.RequestedAssets.Count;
+                        if (assetCount == 1)
+                        {
+                            assetDisplay = request.RequestedAssets.First().Asset?.AssetTag ?? "N/A";
+                        }
+                        else
+                        {
+                            assetDisplay = $"{assetCount} assets";
+                        }
+                    }
+                    else if (request.Asset != null)
+                    {
+                        assetCount = 1;
+                        assetDisplay = request.Asset.AssetTag;
+                    }
+                    else
+                    {
+                        assetDisplay = "N/A";
+                    }
+
+                    <tr>
+                        <td>#@request.Id</td>
+                        <td>
+                            @if (assetCount > 1)
+                            {
+                                <span class="badge bg-info text-white" title="Multiple assets">
+                                    <i class="fas fa-layer-group"></i> @assetDisplay
+                                </span>
+                            }
+                            else
+                            {
+                                <text>@assetDisplay</text>
+                            }
+                        </td>
+                        <td>@request.RequestedBy</td>
+                        <td>
+                            <span class="badge bg-primary">@request.RequestType</span>
+                        </td>
+                        <td>@request.RequestDate.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>
+                            <span class="badge bg-warning text-dark">@request.Status</span>
+                        </td>
+                        <td>
+                            @* Only Approval can approve/reject/cancel *@
+                            @if (User.IsInRole("Approval"))
+                            {
+                                <a class="btn btn-sm btn-success"
+                                   asp-action="Approve"
+                                   asp-route-id="@request.Id">
+                                    <i class="fas fa-check"></i> Approve
+                                </a>
+                                <a class="btn btn-sm btn-danger"
+                                   asp-action="Reject"
+                                   asp-route-id="@request.Id">
+                                    <i class="fas fa-ban"></i> Reject
+                                </a>
+                                <form asp-action="Cancel" asp-route-id="@request.Id" method="post" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-warning"
+                                            onclick="return confirm('Cancel this request?');">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </form>
+                            }
+
+                            @* All roles can view details *@
+                            <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@request.Id">
+                                <i class="fas fa-eye"></i> Details
+                            </a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        <i class="fas fa-inbox"></i> No pending requests
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="mt-3">
+        @if (User.IsInRole("Admin") || User.IsInRole("Approval") || User.IsInRole("Issuer"))
+        {
+            <a class="btn btn-info" asp-action="AllRequests">
+                <i class="fas fa-history"></i> View All Requests (History)
+            </a>
+        }
+        <a class="btn btn-secondary" asp-controller="Assets" asp-action="Index">
+            <i class="fas fa-arrow-left"></i> Back to Assets
+        </a>
+    </div>
+</div>

@@ -1,0 +1,29 @@
+## ASP.NET Core / Visual Studio
+
+# Build output
+bin/
+obj/
+
+# User secrets (NEVER commit these)
+appsettings.json
+appsettings.Development.json
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+
+# VS Code
+.vscode/
+
+# NuGet
+*.nupkg
+packages/
+
+# Publish output
+publish/

@@ -1,0 +1,131 @@
+@model AssetManager.Models.ViewModels.CreateUserViewModel
+
+@{
+    ViewData["Title"] = "Create New User";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h1 class="mb-4">Create New User</h1>
+
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">User Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">Email Address</label>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="user@example.com" required />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label">Password</label>
+                            <input asp-for="Password" type="password" class="form-control" required />
+                            <small class="text-muted">
+                                Password must be at least 6 characters.
+                            </small>
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div class="mb-3">
+                            <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
+                            <input asp-for="ConfirmPassword" type="password" class="form-control" required />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        </div>
+
+                        <!-- Roles Selection -->
+                        <div class="mb-3">
+                            <label class="form-label">Assign Role</label>
+                            <div class="role-selection">
+                                @{
+                                    var roles = ViewBag.Roles as List<string>;
+                                }
+                                @if (roles != null && roles.Any())
+                                {
+                                    @foreach (var role in roles)
+                                    {
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" value="@role"
+                                                   name="SelectedRoles" id="role_@role" />
+                                            <label class="form-check-label" for="role_@role">
+                                                <strong>@role</strong>
+                                                <small class="text-muted d-block">
+                                                    @GetRoleDescription(role)
+                                                </small>
+                                            </label>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="alert alert-warning">
+                                        No roles available. Please contact the administrator.
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-check-circle"></i> Create User
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary btn-lg">
+                        <i class="bi bi-arrow-left"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+
+@functions {
+    private string GetRoleDescription(string roleName)
+    {
+        return roleName switch
+        {
+            "Admin" => "Full system access and user management",
+            "Approval" => "Can approve/reject asset requests",
+            "Issuer" => "Can request and return assets",
+            "Viewer" => "Read-only access to assets",
+            "User" => "Basic user access",
+            _ => ""
+        };
+    }
+}
+
+<style>
+    .role-selection .form-check {
+        padding: 0.75rem;
+        border: 1px solid #e9ecef;
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
+        transition: background-color 0.2s;
+    }
+
+        .role-selection .form-check:hover {
+            background-color: #f8f9fa;
+        }
+
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+</style>

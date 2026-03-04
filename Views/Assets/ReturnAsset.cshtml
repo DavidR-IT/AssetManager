@@ -1,0 +1,69 @@
+﻿@model Asset
+@{
+    ViewData["Title"] = "Return Asset";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h3>Return Asset to Inventory</h3>
+                </div>
+                <div class="card-body">
+                    <p class="alert alert-info">
+                        You are about to return the following asset to the inventory.
+                        This action will make it available for other users to request.
+                    </p>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Asset Tag:</strong></label>
+                            <p>@Model.AssetTag</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Category:</strong></label>
+                            <p>@Model.Category</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Brand / Model:</strong></label>
+                            <p>@Model.Brand @Model.Model</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Serial Number:</strong></label>
+                            <p>@(Model.SerialNumber ?? "N/A")</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Assigned To:</strong></label>
+                            <p>@Model.AssignedTo</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Assigned Date:</strong></label>
+                            <p>@Model.AssignedDate?.ToString("yyyy-MM-dd")</p>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-danger" role="alert">
+                        <strong>Warning!</strong> After confirming, this asset will be returned to the inventory
+                        and become available for other users to request.
+                    </div>
+
+                    <form method="post" asp-action="ReturnAsset">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-danger">Confirm Return</button>
+                            <a class="btn btn-secondary" asp-controller="Assets" asp-action="Index">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

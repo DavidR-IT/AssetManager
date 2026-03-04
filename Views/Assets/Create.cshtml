@@ -1,0 +1,124 @@
+﻿@model AssetManager.Models.Asset
+@{
+    ViewData["Title"] = "Create Asset";
+}
+
+<h2>Create New Asset</h2>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label asp-for="AssetTag" class="form-label"></label>
+                <input asp-for="AssetTag" class="form-control" required />
+                <span asp-validation-for="AssetTag" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Category" class="form-label"></label>
+                <select asp-for="Category" class="form-select" required>
+                    <option value="">-- Select Category --</option>
+                    <option value="Laptop">Laptop</option>
+                    <option value="Desktop">Desktop</option>
+                    <option value="Monitor">Monitor</option>
+                    <option value="Printer">Printer</option>
+                    <option value="Phone">Phone</option>
+                    <option value="Accessories">Accessories</option>
+                    <option value="Other">Other</option>
+                </select>
+                <span asp-validation-for="Category" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Brand" class="form-label"></label>
+                <select asp-for="Brand" class="form-select" required>
+                    <option value="">-- Select Brand --</option>
+                    <option value="Dell">Dell</option>
+                    <option value="HP">HP</option>
+                    <option value="Lenovo">Lenovo</option>
+                    <option value="Asus">Asus</option>
+                    <option value="Acer">Acer</option>
+                    <option value="Samsung">Samsung</option>
+                    <option value="Other">Other</option>
+                </select>
+                <span asp-validation-for="Brand" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Model" class="form-label"></label>
+                <input asp-for="Model" class="form-control" list="modelList" required />
+                <datalist id="modelList">
+                    <option value="Latitude 5520" />
+                    <option value="Latitude 7420" />
+                    <option value="ThinkPad X1 Carbon" />
+                    <option value="ThinkPad T14" />
+                    <option value="MacBook Pro 14" />
+                    <option value="MacBook Pro 16" />
+                    <option value="MacBook Air M2" />
+                    <option value="EliteBook 840" />
+                    <option value="ProBook 450" />
+                    <option value="Surface Laptop 5" />
+                    <option value="Surface Pro 9" />
+                    <option value="VivoBook 15" />
+                    <option value="ROG Strix" />
+                    <option value="Aspire 5" />
+                    <option value="Predator Helios" />
+                    <option value="Galaxy Book3" />
+                    <option value="IdeaPad 3" />
+                </datalist>
+                <span asp-validation-for="Model" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="SerialNumber" class="form-label"></label>
+                <input asp-for="SerialNumber" class="form-control" />
+                <span asp-validation-for="SerialNumber" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label asp-for="PurchaseDate" class="form-label"></label>
+                <input asp-for="PurchaseDate" type="date" class="form-control" />
+                <span asp-validation-for="PurchaseDate" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="PurchasePrice" class="form-label"></label>
+                <input asp-for="PurchasePrice" type="number" step="0.01" class="form-control" />
+                <span asp-validation-for="PurchasePrice" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Location" class="form-label"></label>
+                <select asp-for="Location" class="form-select">
+                    <option value="">-- Select Location --</option>
+                    <option value="Lot 60/61 Ogle">Lot 60/61 Ogle</option>
+                    <option value="Lot 16 Ogle">Lot 16 Ogle</option>
+                    <option value="Other">Other</option>
+                </select>
+                <span asp-validation-for="Location" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Notes" class="form-label"></label>
+                <textarea asp-for="Notes" class="form-control" rows="4"></textarea>
+                <span asp-validation-for="Notes" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group mt-3">
+        <button type="submit" class="btn btn-primary">Create Asset</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

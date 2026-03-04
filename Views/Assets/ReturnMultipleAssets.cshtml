@@ -1,0 +1,230 @@
+@{
+    ViewData["Title"] = "Return Multiple Assets";
+    var assignedAssets = ViewBag.AssignedAssets as List<Asset>;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">
+                        <i class="fas fa-undo"></i> 
+                        Return Multiple Assets
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-triangle"></i> @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    @if (assignedAssets == null || !assignedAssets.Any())
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> No assets are currently assigned. All assets are available.
+                        </div>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Assets
+                        </a>
+                    }
+                    else
+                    {
+                        <!-- Return Form -->
+                        <form asp-action="ReturnMultipleAssetsConfirmed" method="post" id="returnForm">
+                            @Html.AntiForgeryToken()
+
+                            <!-- Asset Selection -->
+                            <div class="mb-4">
+                                <label class="form-label">
+                                    <i class="fas fa-laptop"></i> Select Asset(s) to Return <span class="text-danger">*</span>
+                                </label>
+                                
+                                <div class="card">
+                                    <div class="card-header bg-light">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span>Assigned Assets (@assignedAssets.Count)</span>
+                                            <div>
+                                                <button type="button" class="btn btn-sm btn-outline-primary" id="selectAll">
+                                                    <i class="fas fa-check-square"></i> Select All
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" id="deselectAll">
+                                                    <i class="fas fa-square"></i> Clear All
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                                        <div class="row g-2">
+                                            @foreach (var asset in assignedAssets)
+                                            {
+                                                <div class="col-md-6">
+                                                    <div class="form-check asset-checkbox-item p-3 border rounded">
+                                                        <input class="form-check-input asset-checkbox" 
+                                                               type="checkbox" 
+                                                               name="assetIds" 
+                                                               value="@asset.Id" 
+                                                               id="asset_@asset.Id">
+                                                        <label class="form-check-label w-100" for="asset_@asset.Id" style="cursor: pointer;">
+                                                            <div class="d-flex justify-content-between">
+                                                                <strong>@asset.AssetTag</strong>
+                                                                <span class="badge bg-info">@asset.Category</span>
+                                                            </div>
+                                                            <div class="text-muted small">
+                                                                @asset.Brand @asset.Model
+                                                            </div>
+                                                            <div class="text-muted small">
+                                                                <i class="fas fa-user"></i> <strong>Assigned to:</strong> @asset.AssignedTo
+                                                            </div>
+                                                            <div class="text-muted small">
+                                                                <i class="fas fa-calendar"></i> @asset.AssignedDate?.ToString("MMM dd, yyyy")
+                                                            </div>
+                                                            <div class="text-muted small">
+                                                                <i class="fas fa-map-marker-alt"></i> @(asset.Location ?? "N/A")
+                                                            </div>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="card-footer bg-light">
+                                        <div id="selectedCount" class="text-center">
+                                            <i class="fas fa-info-circle"></i> Please select at least one asset to return
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Optional Return Notes -->
+                            <div class="mb-3">
+                                <label for="returnNotes" class="form-label">
+                                    <i class="fas fa-comment-dots"></i> Return Notes (Optional)
+                                </label>
+                                <textarea class="form-control" id="returnNotes" name="returnNotes"
+                                          rows="3" maxlength="500"
+                                          placeholder="Any notes about the return (condition, damage, etc.)..."></textarea>
+                                <div class="form-text">Optional - Add any relevant notes about the condition or return (max 500 characters)</div>
+                            </div>
+
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i> <strong>Note:</strong> 
+                                Returning assets will immediately change their status to "Ready" and make them available for new requests.
+                                A return record will be created for audit purposes.
+                            </div>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a asp-action="Index" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="fas fa-undo"></i> Return Selected Assets
+                                </button>
+                            </div>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    
+    @if (assignedAssets != null && assignedAssets.Any())
+    {
+        <script>
+            // Handle checkbox selection
+            const checkboxes = document.querySelectorAll('.asset-checkbox');
+            const selectAllBtn = document.getElementById('selectAll');
+            const deselectAllBtn = document.getElementById('deselectAll');
+            const countDiv = document.getElementById('selectedCount');
+            const form = document.getElementById('returnForm');
+
+            function updateSelectedCount() {
+                const selected = document.querySelectorAll('.asset-checkbox:checked').length;
+                if (selected > 0) {
+                    countDiv.innerHTML = `<i class="fas fa-check-circle text-success"></i> <strong>${selected} asset(s) selected for return</strong>`;
+                    countDiv.classList.remove('text-danger');
+                    countDiv.classList.add('text-success');
+                } else {
+                    countDiv.innerHTML = '<i class="fas fa-info-circle text-danger"></i> <strong>Please select at least one asset to return</strong>';
+                    countDiv.classList.remove('text-success');
+                    countDiv.classList.add('text-danger');
+                }
+            }
+
+            // Update count on checkbox change
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    // Highlight selected items
+                    const parent = this.closest('.asset-checkbox-item');
+                    if (this.checked) {
+                        parent.classList.add('border-warning', 'bg-light');
+                    } else {
+                        parent.classList.remove('border-warning', 'bg-light');
+                    }
+                    updateSelectedCount();
+                });
+            });
+
+            // Select All button
+            selectAllBtn.addEventListener('click', function() {
+                checkboxes.forEach(cb => {
+                    cb.checked = true;
+                    cb.closest('.asset-checkbox-item').classList.add('border-warning', 'bg-light');
+                });
+                updateSelectedCount();
+            });
+
+            // Deselect All button
+            deselectAllBtn.addEventListener('click', function() {
+                checkboxes.forEach(cb => {
+                    cb.checked = false;
+                    cb.closest('.asset-checkbox-item').classList.remove('border-warning', 'bg-light');
+                });
+                updateSelectedCount();
+            });
+
+            // Form validation and confirmation
+            form.addEventListener('submit', function(e) {
+                const selected = document.querySelectorAll('.asset-checkbox:checked').length;
+                if (selected === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one asset to return.');
+                    countDiv.innerHTML = '<i class="fas fa-exclamation-triangle text-danger"></i> <strong>Please select at least one asset to return</strong>';
+                    return false;
+                }
+
+                // Confirmation dialog
+                const assetText = selected === 1 ? 'asset' : 'assets';
+                if (!confirm(`Are you sure you want to return ${selected} ${assetText}? This will make them available for new requests.`)) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+            // Initialize count on page load
+            updateSelectedCount();
+        </script>
+
+        <style>
+            .asset-checkbox-item {
+                transition: all 0.2s ease;
+            }
+            .asset-checkbox-item:hover {
+                background-color: #fff3cd;
+                border-color: #ffc107 !important;
+            }
+            .form-check-input:checked + .form-check-label {
+                font-weight: 500;
+            }
+        </style>
+    }
+}

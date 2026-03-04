@@ -1,0 +1,152 @@
+@model IEnumerable<AssetManager.Models.Asset>
+
+@{
+    ViewData["Title"] = "User Assets";
+}
+
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="display-5">Assets for <strong>@ViewBag.UserName</strong></h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a asp-action="Details" asp-route-id="@ViewBag.UserId" class="btn btn-info btn-lg">
+                <i class="bi bi-person-circle"></i> User Profile
+            </a>
+        </div>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Asset Tag</th>
+                        <th>Category</th>
+                        <th>Serial Number</th>
+                        <th>Purchase Date</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                        <th>Location</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var asset in Model)
+                    {
+                        var statusColor = asset.Status switch
+                        {
+                            AssetManager.Models.AssetStatus.Ready => "success",
+                            AssetManager.Models.AssetStatus.Pending => "warning",
+                            AssetManager.Models.AssetStatus.Assigned => "info",
+                            AssetManager.Models.AssetStatus.Maintenance => "warning",
+                            AssetManager.Models.AssetStatus.Retired => "danger",
+                            _ => "secondary"
+                        };
+
+                        <tr>
+                            <td>
+                                <strong>@asset.AssetTag</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">@asset.Category</span>
+                            </td>
+                            <td>@asset.SerialNumber</td>
+                            <td>@asset.PurchaseDate?.ToString("yyyy-MM-dd")</td>
+                            <td>$@asset.PurchasePrice?.ToString("F2")</td>
+                            <td>
+                                <span class="badge bg-@statusColor">@asset.Status</span>
+                            </td>
+                            <td>@asset.Location</td>
+                            <td>
+                                <a href="@Url.Action("Edit", "Assets", new { id = asset.Id })" 
+                                   class="btn btn-sm btn-warning" title="Edit Asset">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot class="table-light fw-bold">
+                    <tr>
+                        <td colspan="4" class="text-end">Total Price:</td>
+                        <td>
+                            <strong>$@Model.Sum(a => a.PurchasePrice ?? 0).ToString("F2")</strong>
+                        </td>
+                        <td colspan="3"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info" role="alert">
+            <i class="bi bi-info-circle"></i>
+            <strong>No Assets</strong> - This user doesn't have any assigned assets.
+        </div>
+    }
+
+    <!-- Summary Card -->
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Total Assets</h5>
+                    <p class="display-4 text-primary">@Model.Count()</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Total Price</h5>
+                    <p class="display-4 text-success">$@Model.Sum(a => a.PurchasePrice ?? 0).ToString("F2")</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Ready Assets</h5>
+                    <p class="display-4 text-info">@Model.Count(a => a.Status == AssetManager.Models.AssetStatus.Ready)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="mt-4">
+        <a asp-action="Index" class="btn btn-secondary btn-lg">
+            <i class="bi bi-arrow-left"></i> Back to Users
+        </a>
+    </div>
+</div>
+
+<style>
+    .table {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .badge {
+        padding: 0.5em 0.75em;
+    }
+
+    .btn-sm {
+        margin-right: 0.25rem;
+    }
+
+    .card {
+        border: none;
+        text-decoration: none;
+    }
+
+    .display-4 {
+        font-weight: 700;
+    }
+</style>

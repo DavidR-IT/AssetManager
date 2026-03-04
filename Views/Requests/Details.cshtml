@@ -1,0 +1,251 @@
+@model AssetRequest
+@{
+    ViewData["Title"] = "Request Details";
+}
+<div class="container mt-4">
+    <h2>Request Details</h2>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h5><i class="fas fa-file-alt"></i> Request Information</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-5">Request ID:</dt>
+                        <dd class="col-sm-7">@Model.Id</dd>
+
+                        <dt class="col-sm-5">Request Type:</dt>
+                        <dd class="col-sm-7">
+                            <span class="badge bg-@(Model.RequestType == "Issue" ? "primary" : Model.RequestType == "Request" ? "success" : Model.RequestType == "Return" ? "warning" : "info")">
+                                @Model.RequestType
+                            </span>
+                        </dd>
+
+                        <dt class="col-sm-5">Status:</dt>
+                        <dd class="col-sm-7">
+                            <span class="badge bg-@GetStatusColor(Model.Status)">@Model.Status</span>
+                        </dd>
+
+                        <dt class="col-sm-5">Requested By:</dt>
+                        <dd class="col-sm-7">@Model.RequestedBy</dd>
+
+                        <dt class="col-sm-5">Request Date:</dt>
+                        <dd class="col-sm-7">@Model.RequestDate.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+
+                        @if (Model.ExpectedReturnDate.HasValue)
+                        {
+                            <dt class="col-sm-5">Expected Return Date:</dt>
+                            <dd class="col-sm-7">@Model.ExpectedReturnDate.Value.ToString("MMM dd, yyyy")</dd>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(Model.Justification))
+                        {
+                            <dt class="col-sm-5">Justification:</dt>
+                            <dd class="col-sm-7">@Model.Justification</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.ApprovedBy))
+                        {
+                            <dt class="col-sm-5">@(Model.Status == "Approved" ? "Approved" : Model.Status == "Rejected" ? "Rejected" : "Processed") By:</dt>
+                            <dd class="col-sm-7">@Model.ApprovedBy</dd>
+                        }
+
+                        @if (Model.ApprovalDate.HasValue)
+                        {
+                            <dt class="col-sm-5">@(Model.Status == "Approved" ? "Approval" : Model.Status == "Rejected" ? "Rejection" : "Processing") Date:</dt>
+                            <dd class="col-sm-7">@Model.ApprovalDate.Value.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(Model.Notes))
+                        {
+                            <dt class="col-sm-5">Notes:</dt>
+                            <dd class="col-sm-7">
+                                @* Split notes by newlines and display as paragraphs for better formatting *@
+                                @{
+                                    var noteLines = Model.Notes.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                                    foreach (var line in noteLines)
+                                    {
+                                        <p class="mb-1">@line</p>
+                                    }
+                                }
+                            </dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <!-- Display multiple assets if using new RequestedAssets collection -->
+            @if (Model.RequestedAssets != null && Model.RequestedAssets.Any())
+            {
+                <div class="card mb-3">
+                    <div class="card-header bg-info text-white">
+                        <h5><i class="fas fa-laptop"></i> Requested Assets (@Model.RequestedAssets.Count)</h5>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var requestItem in Model.RequestedAssets)
+                        {
+                            var asset = requestItem.Asset;
+                            if (asset != null)
+                            {
+                                <div class="card mb-2 @(Model.RequestedAssets.Count > 1 ? "border-secondary" : "")">
+                                    <div class="card-body p-3">
+                                        <dl class="row mb-0">
+                                            <dt class="col-sm-5">Asset Tag:</dt>
+                                            <dd class="col-sm-7"><strong>@asset.AssetTag</strong></dd>
+
+                                            <dt class="col-sm-5">Category:</dt>
+                                            <dd class="col-sm-7">@asset.Category</dd>
+
+                                            <dt class="col-sm-5">Brand/Model:</dt>
+                                            <dd class="col-sm-7">@asset.Brand @asset.Model</dd>
+
+                                            <dt class="col-sm-5">Serial Number:</dt>
+                                            <dd class="col-sm-7">@(asset.SerialNumber ?? "N/A")</dd>
+
+                                            <dt class="col-sm-5">Status:</dt>
+                                            <dd class="col-sm-7">
+                                                <span class="badge bg-@GetAssetStatusColor(asset.Status)">@asset.Status</span>
+                                            </dd>
+
+                                            <dt class="col-sm-5">Location:</dt>
+                                            <dd class="col-sm-7">@(asset.Location ?? "N/A")</dd>
+
+                                            @if (!string.IsNullOrEmpty(asset.AssignedTo))
+                                            {
+                                                <dt class="col-sm-5">Assigned To:</dt>
+                                                <dd class="col-sm-7">@asset.AssignedTo</dd>
+                                            }
+                                        </dl>
+                                        <div class="mt-2">
+                                            <a class="btn btn-sm btn-info" asp-controller="Assets" asp-action="Details" asp-route-id="@asset.Id">
+                                                <i class="fas fa-eye"></i> View Details
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            }
+            else if (Model.Asset != null)
+            {
+                <!-- Fallback: Display single asset (backward compatibility) -->
+                <div class="card mb-3">
+                    <div class="card-header bg-info text-white">
+                        <h5><i class="fas fa-laptop"></i> Asset Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row">
+                            <dt class="col-sm-5">Asset Tag:</dt>
+                            <dd class="col-sm-7">@Model.Asset.AssetTag</dd>
+
+                            <dt class="col-sm-5">Category:</dt>
+                            <dd class="col-sm-7">@Model.Asset.Category</dd>
+
+                            <dt class="col-sm-5">Brand:</dt>
+                            <dd class="col-sm-7">@Model.Asset.Brand</dd>
+
+                            <dt class="col-sm-5">Model:</dt>
+                            <dd class="col-sm-7">@Model.Asset.Model</dd>
+
+                            <dt class="col-sm-5">Serial Number:</dt>
+                            <dd class="col-sm-7">@Model.Asset.SerialNumber</dd>
+
+                            <dt class="col-sm-5">Current Status:</dt>
+                            <dd class="col-sm-7">
+                                <span class="badge bg-@GetAssetStatusColor(Model.Asset.Status)">@Model.Asset.Status</span>
+                            </dd>
+
+                            <dt class="col-sm-5">Location:</dt>
+                            <dd class="col-sm-7">@Model.Asset.Location</dd>
+
+                            @if (!string.IsNullOrEmpty(Model.Asset.AssignedTo))
+                            {
+                                <dt class="col-sm-5">Currently Assigned To:</dt>
+                                <dd class="col-sm-7">@Model.Asset.AssignedTo</dd>
+                            }
+
+                            @if (Model.Asset.AssignedDate.HasValue)
+                            {
+                                <dt class="col-sm-5">Assigned Date:</dt>
+                                <dd class="col-sm-7">@Model.Asset.AssignedDate.Value.ToString("yyyy-MM-dd HH:mm")</dd>
+                            }
+                        </dl>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Action buttons for pending requests - Approval role only -->
+    @if (Model.Status == "Pending" && User.IsInRole("Approval"))
+    {
+        <div class="card mt-3">
+            <div class="card-header bg-warning">
+                <h5><i class="fas fa-tasks"></i> Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <a asp-action="Approve" asp-route-id="@Model.Id" class="btn btn-success btn-lg w-100">
+                            <i class="fas fa-check"></i> Approve Request
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a asp-action="Reject" asp-route-id="@Model.Id" class="btn btn-danger btn-lg w-100">
+                            <i class="fas fa-times"></i> Reject Request
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="mt-4">
+        <a class="btn btn-primary" asp-action="Index">
+            <i class="fas fa-arrow-left"></i> Back to Pending Requests
+        </a>
+        <a class="btn btn-secondary" asp-action="AllRequests">
+            <i class="fas fa-list"></i> View All Requests
+        </a>
+        @if (Model.Asset != null)
+        {
+            <a class="btn btn-info" asp-controller="Assets" asp-action="Details" asp-route-id="@Model.Asset.Id">
+                <i class="fas fa-laptop"></i> View Asset Details
+            </a>
+        }
+    </div>
+</div>
+
+@functions {
+    private string GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "Pending" => "warning",
+            "Approved" => "success",
+            "Rejected" => "danger",
+            "Cancelled" => "secondary",
+            _ => "light"
+        };
+    }
+
+    private string GetAssetStatusColor(AssetStatus status)
+    {
+        return status switch
+        {
+            AssetStatus.Ready => "success",
+            AssetStatus.Pending => "warning",
+            AssetStatus.Assigned => "info",
+            AssetStatus.Maintenance => "secondary",
+            AssetStatus.Retired => "danger",
+            _ => "light"
+        };
+    }
+}

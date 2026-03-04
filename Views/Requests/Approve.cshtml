@@ -1,0 +1,144 @@
+@model AssetRequest
+
+@{
+    ViewData["Title"] = "Approve Request";
+    var assets = Model.RequestedAssets?.Any() == true 
+        ? Model.RequestedAssets.Where(ri => ri.Asset != null).Select(ri => ri.Asset!).ToList() 
+        : (Model.Asset != null ? new List<Asset> { Model.Asset } : new List<Asset>());
+    var assetCount = assets.Count;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-check-circle"></i> Approve Asset Request</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Request Details -->
+                    <div class="card mb-3 bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-file-alt"></i> Request Information</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Request ID:</strong> #@Model.Id</p>
+                                    <p><strong>Requested By:</strong> @Model.RequestedBy</p>
+                                    <p><strong>Request Date:</strong> @Model.RequestDate.ToString("MMM dd, yyyy")</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Expected Return:</strong> @Model.ExpectedReturnDate?.ToString("MMM dd, yyyy")</p>
+                                    <p><strong>Status:</strong> <span class="badge bg-warning text-dark">@Model.Status</span></p>
+                                    <p><strong>Asset Count:</strong> 
+                                        @if (assetCount > 1)
+                                        {
+                                            <span class="badge bg-info text-white">
+                                                <i class="fas fa-layer-group"></i> @assetCount assets
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <text>1 asset</text>
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.Justification))
+                            {
+                                <hr />
+                                <p><strong>Justification:</strong></p>
+                                <p class="text-muted">@Model.Justification</p>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Asset Details -->
+                    <div class="card mb-4 bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-laptop"></i> 
+                                Asset@(assetCount > 1 ? "s" : "") to be Assigned
+                            </h5>
+                            @if (assets.Any())
+                            {
+                                @if (assetCount == 1)
+                                {
+                                    var asset = assets.First();
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Asset Tag:</strong> @asset.AssetTag</p>
+                                            <p><strong>Brand/Model:</strong> @asset.Brand @asset.Model</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Category:</strong> @asset.Category</p>
+                                            <p><strong>Location:</strong> @(asset.Location ?? "N/A")</p>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered">
+                                            <thead class="table-secondary">
+                                                <tr>
+                                                    <th>Asset Tag</th>
+                                                    <th>Category</th>
+                                                    <th>Brand/Model</th>
+                                                    <th>Location</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var asset in assets)
+                                                {
+                                                    <tr>
+                                                        <td>@asset.AssetTag</td>
+                                                        <td>@asset.Category</td>
+                                                        <td>@asset.Brand @asset.Model</td>
+                                                        <td>@(asset.Location ?? "N/A")</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <p class="text-danger">No assets found for this request.</p>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Approval Form -->
+                    <form asp-action="Approve" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-4">
+                            <label for="approvalNotes" class="form-label">
+                                <i class="fas fa-comment"></i> Approval Notes (Optional)
+                            </label>
+                            <textarea class="form-control" id="approvalNotes" name="approvalNotes"
+                                      rows="3" maxlength="500"
+                                      placeholder="Add any notes or conditions (optional)..."></textarea>
+                            <div class="form-text">Optional - Add special instructions for the requester</div>
+                        </div>
+
+                        <div class="alert alert-success">
+                            <i class="fas fa-info-circle"></i> <strong>Confirm:</strong>
+                            Assign <strong>@assetCount asset@(assetCount > 1 ? "s" : "")</strong> to <strong>@Model.RequestedBy</strong>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check"></i> Confirm Approval
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,79 @@
+@model AssetRequest
+
+@{
+    ViewData["Title"] = "Reject Request";
+    var assets = Model.RequestedAssets?.Any() == true
+        ? Model.RequestedAssets.Where(ri => ri.Asset != null).Select(ri => ri.Asset!).ToList()
+        : (Model.Asset != null ? new List<Asset> { Model.Asset } : new List<Asset>());
+    var assetCount = assets.Count;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-times-circle"></i> Reject Asset Request</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Request Details -->
+                    <div class="card mb-3 bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-file-alt"></i> Request Information</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Request ID:</strong> #@Model.Id</p>
+                                    <p><strong>Requested By:</strong> @Model.RequestedBy</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Expected Return:</strong> @Model.ExpectedReturnDate?.ToString("MMM dd, yyyy")</p>
+                                </div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.Justification))
+                            {
+                                <hr />
+                                <p><strong>Justification:</strong></p>
+                                <p class="text-muted">@Model.Justification</p>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Rejection Form -->
+                    <form asp-action="Reject" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-4">
+                            <label for="rejectionNotes" class="form-label">
+                                <i class="fas fa-comment"></i> Rejection Reason (Optional)
+                            </label>
+                            <textarea class="form-control" id="rejectionNotes" name="rejectionNotes"
+                                      rows="3" maxlength="500"
+                                      placeholder="Explain why this request is being rejected (recommended)..."></textarea>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> <strong>Confirm:</strong>
+                            @if (assetCount == 1)
+                            {
+                                <text>Reject request for <strong>@assets.First().AssetTag</strong></text>
+                            }
+                            else
+                            {
+                                <text>Reject request for <strong>@assetCount asset(s)</strong></text>
+                            }
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </a>
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-ban"></i> Confirm Rejection
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

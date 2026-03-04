@@ -1,0 +1,88 @@
+@if (User.Identity?.IsAuthenticated ?? false)
+{
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" asp-controller="Assets" asp-action="Index">Asset Manager</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <!-- ADMIN ONLY -->
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown">
+                                Admin Panel
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="adminMenu">
+                                <li><a class="dropdown-item" asp-controller="Assets" asp-action="Index">View Assets</a></li>
+                                <li><a class="dropdown-item" asp-controller="Assets" asp-action="Create">Create Asset</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" asp-controller="Requests" asp-action="Index">View Pending Requests</a></li>
+                                <li><a class="dropdown-item" asp-controller="Requests" asp-action="AllRequests">View All Requests</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" asp-controller="Users" asp-action="Index">Manage Users</a></li>
+                            </ul>
+                        </li>
+                    }
+
+                    <!-- APPROVAL ROLE -->
+                    @if (User.IsInRole("Approval"))
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="approvalMenu" role="button" data-bs-toggle="dropdown">
+                                Requests
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="approvalMenu">
+                                <li><a class="dropdown-item" asp-controller="Requests" asp-action="Index">Pending Requests</a></li>
+                                <li><a class="dropdown-item" asp-controller="Requests" asp-action="AllRequests">View All Requests</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Assets" asp-action="Index">View Assets</a>
+                        </li>
+                    }
+
+                    <!-- ISSUER ROLE -->
+                    @if (User.IsInRole("Issuer"))
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="issuerMenu" role="button" data-bs-toggle="dropdown">
+                                Assets
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="issuerMenu">
+                                <li><a class="dropdown-item" asp-controller="Assets" asp-action="Index">Browse Assets</a></li>
+                                <li><a class="dropdown-item" asp-controller="Assets" asp-action="MyRequests">My Requests</a></li>
+                            </ul>
+                        </li>
+                    }
+
+                    <!-- VIEWER ROLE -->
+                    @if (User.IsInRole("Viewer"))
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Assets" asp-action="Index">View Assets</a>
+                        </li>
+                    }
+
+                    <!-- USER PROFILE (ALL ROLES) -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button" data-bs-toggle="dropdown">
+                            @User.Identity?.Name
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="userMenu">
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form asp-controller="Auth" asp-action="Logout" method="post" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="dropdown-item" style="border:none;background:none;cursor:pointer;width:100%;text-align:left;">Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+}

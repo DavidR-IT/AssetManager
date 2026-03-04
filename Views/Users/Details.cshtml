@@ -1,0 +1,166 @@
+@model AssetManager.Models.ViewModels.UserDetailViewModel
+
+@{
+    ViewData["Title"] = "User Details";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="mb-4">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Users
+                </a>
+            </div>
+
+            <!-- User Information Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-person-circle"></i> User Information
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">Username</h6>
+                            <p class="fs-5"><strong>@Model.UserName</strong></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">Email Address</h6>
+                            <p class="fs-5"><strong>@Model.Email</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Roles Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-shield-check"></i> Assigned Roles
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @if (Model.Roles.Any())
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var role in Model.Roles)
+                            {
+                                <span class="badge bg-success" style="font-size: 1rem; padding: 0.5rem 0.75rem;">
+                                    @role
+                                </span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning mb-0">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            No roles assigned to this user.
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Assets Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-box-seam"></i> Assigned Assets
+                        <span class="badge bg-light text-dark float-end">@Model.Assets.Count</span>
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @if (Model.Assets.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Asset Tag</th>
+                                        <th>Category</th>
+                                        <th>Serial Number</th>
+                                        <th>Purchase Date</th>
+                                        <th>Status</th>
+                                        <th>Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var asset in Model.Assets)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@asset.AssetTag</strong>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">@asset.Category</span>
+                                            </td>
+                                            <td>@asset.SerialNumber</td>
+                                            <td>@asset.PurchaseDate?.ToString("yyyy-MM-dd")</td>
+                                            <td>
+                                                @{
+                                                    var statusColor = asset.Status switch
+                                                    {
+                                                        AssetManager.Models.AssetStatus.Ready => "success",
+                                                        AssetManager.Models.AssetStatus.Pending => "warning",
+                                                        AssetManager.Models.AssetStatus.Assigned => "info",
+                                                        AssetManager.Models.AssetStatus.Maintenance => "warning",
+                                                        AssetManager.Models.AssetStatus.Retired => "danger",
+                                                        _ => "secondary"
+                                                    };
+                                                }
+                                                <span class="badge bg-@statusColor">@asset.Status</span>
+                                            </td>
+                                            <td>$@asset.PurchasePrice?.ToString("F2")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-info-circle"></i>
+                            No assets assigned to this user.
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mb-4 d-flex gap-2">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning btn-lg">
+                    <i class="bi bi-pencil"></i> Edit User
+                </a>
+                <a asp-action="ViewUserAssets" asp-route-id="@Model.Id" class="btn btn-info btn-lg">
+                    <i class="bi bi-box"></i> Manage Assets
+                </a>
+                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger btn-lg">
+                    <i class="bi bi-trash"></i> Delete User
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        border-radius: 0.5rem;
+    }
+
+    .card-header {
+        font-weight: 600;
+        border-radius: 0.5rem 0.5rem 0 0;
+    }
+
+    .badge {
+        margin-right: 0.25rem;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+</style>
