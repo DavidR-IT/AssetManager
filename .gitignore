@@ -4,9 +4,12 @@
 bin/
 obj/
 
-# User secrets (NEVER commit these)
+# User secrets and local config (NEVER commit these)
 appsettings.json
 appsettings.Development.json
+appsettings.Production.json
+appsettings.*.json
+!appsettings.example.json
 
 # Visual Studio
 .vs/
@@ -27,3 +30,7 @@ packages/
 
 # Publish output
 publish/
+
+# OS
+.DS_Store
+Thumbs.db
