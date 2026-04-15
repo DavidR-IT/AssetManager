@@ -56,12 +56,24 @@
                                                 </button>
                                             </div>
                                         </div>
+                                        <div class="mt-2">
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                                <input type="text" class="form-control" id="assetSearchInput"
+                                                       placeholder="Search by tag, category, brand, model, assignee or location...">
+                                                <button type="button" class="btn btn-outline-secondary" id="clearSearch">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                            <div id="searchResultCount" class="text-muted small mt-1"></div>
+                                        </div>
                                     </div>
                                     <div class="card-body" style="max-height: 400px; overflow-y: auto;">
                                         <div class="row g-2">
                                             @foreach (var asset in assignedAssets)
                                             {
-                                                <div class="col-md-6">
+                                                <div class="col-md-6 asset-search-item"
+                                                     data-search="@(asset.AssetTag?.ToLower()) @(asset.Category?.ToLower()) @(asset.Brand?.ToLower()) @(asset.Model?.ToLower()) @(asset.AssignedTo?.ToLower()) @(asset.Location?.ToLower())">
                                                     <div class="form-check asset-checkbox-item p-3 border rounded">
                                                         <input class="form-check-input asset-checkbox" 
                                                                type="checkbox" 
@@ -159,6 +171,35 @@
                     countDiv.classList.add('text-danger');
                 }
             }
+            const searchInput = document.getElementById('assetSearchInput');            const clearSearchBtn = document.getElementById('clearSearch');
+            const searchResultCount = document.getElementById('searchResultCount');
+            const allItems = document.querySelectorAll('.asset-search-item');
+
+            function filterAssets() {
+                const query = searchInput.value.trim().toLowerCase();
+                let visibleCount = 0;
+
+                allItems.forEach(item => {
+                    const searchText = item.getAttribute('data-search') || '';
+                    const match = query === '' || searchText.includes(query);
+                    item.style.display = match ? '' : 'none';
+                    if (match) visibleCount++;
+                });
+
+                if (query === '') {
+                    searchResultCount.textContent = '';
+                } else {
+                    searchResultCount.textContent = `Showing ${visibleCount} of ${allItems.length} asset(s)`;
+                }
+            }
+
+            searchInput.addEventListener('input', filterAssets);
+
+            clearSearchBtn.addEventListener('click', function () {
+                searchInput.value = '';
+                filterAssets();
+                searchInput.focus();
+            });
 
             // Update count on checkbox change
             checkboxes.forEach(checkbox => {
